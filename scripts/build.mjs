@@ -1,0 +1,11 @@
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+const source=await readFile('worker/index.js','utf8');
+const match=source.match(/^const page=("(?:[^"\\]|\\.)*");/);
+if(!match)throw Error('Embedded page not found');
+const page=JSON.parse(match[1]);
+const monitor=await readFile('worker/monitor.js','utf8');
+const sync=await readFile('worker/sync.js','utf8');
+await mkdir('public',{recursive:true});await mkdir('lib',{recursive:true});
+await writeFile('public/index.html',page);
+await writeFile('lib/generated-worker.mjs',source.replace('/* MONITOR_SERVER */',monitor+'\n'+sync));
+console.log('Built HTML and Netlify-compatible worker module');
